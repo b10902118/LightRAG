@@ -286,10 +286,12 @@ async def extract_entities(
         chunk_key = chunk_key_dp[0]
         chunk_dp = chunk_key_dp[1]
         content = chunk_dp["content"]
+        # formatted extraction prompt
         hint_prompt = entity_extract_prompt.format(**context_base, input_text=content)
         final_result = await use_llm_func(hint_prompt)
         history = pack_user_ass_to_openai_messages(hint_prompt, final_result)
         for now_glean_index in range(entity_extract_max_gleaning):
+            # tell llm it miss many so add more
             glean_result = await use_llm_func(continue_prompt, history_messages=history)
 
             history += pack_user_ass_to_openai_messages(continue_prompt, glean_result)
@@ -297,6 +299,7 @@ async def extract_entities(
             if now_glean_index == entity_extract_max_gleaning - 1:
                 break
 
+            # ask whether complete
             if_loop_result: str = await use_llm_func(
                 if_loop_prompt, history_messages=history
             )
@@ -304,6 +307,7 @@ async def extract_entities(
             if if_loop_result != "yes":
                 break
 
+        # concat all extraction answers and process together with predefined delimeters
         records = split_string_by_multi_markers(
             final_result,
             [context_base["record_delimiter"], context_base["completion_delimiter"]],
@@ -355,6 +359,7 @@ async def extract_entities(
     ):
         results.append(await result)
 
+    # aggregate all _process_single_content results
     maybe_nodes = defaultdict(list)
     maybe_edges = defaultdict(list)
     for m_nodes, m_edges in results:
