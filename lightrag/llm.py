@@ -552,6 +552,9 @@ async def hf_model_complete(
 async def ollama_model_complete(
     prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
 ) -> str:
+    if "keyword_extraction" in kwargs:
+        print("keyword_extraction in kwargs")
+        exit()
     if keyword_extraction:
         kwargs["format"] = "json"
     model_name = kwargs["hashing_kv"].global_config["llm_model_name"]

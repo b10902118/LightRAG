@@ -992,11 +992,13 @@ async def naive_query(
 ):
     use_model_func = global_config["llm_model_func"]
     results = await chunks_vdb.query(query, top_k=query_param.top_k)
+    print(results)
     if not len(results):
         return PROMPTS["fail_response"]
     chunks_ids = [r["id"] for r in results]
     chunks = await text_chunks_db.get_by_ids(chunks_ids)
 
+    print(f"{chunks=}")
     maybe_trun_chunks = truncate_list_by_token_size(
         chunks,
         key=lambda x: x["content"],
